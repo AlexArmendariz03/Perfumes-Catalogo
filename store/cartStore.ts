@@ -50,7 +50,13 @@ export const useCartStore = create<CartStore>((set, get) => ({
       return {
         items: [
           ...state.items,
-          { perfume, selectedMl: ml, selectedPriceUSD: sizeOption.price, quantity: 1 },
+          {
+            // Guarda la foto de la presentación elegida para el carrito
+            perfume: { ...perfume, image: sizeOption.image || perfume.image },
+            selectedMl: ml,
+            selectedPriceUSD: sizeOption.price,
+            quantity: 1,
+          },
         ],
         isOpen: true,
       }
@@ -93,7 +99,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
     const lines = items
       .map(
         (i) =>
-          `• ${i.perfume.code ? `*${i.perfume.code}* – ` : ''}*${i.perfume.name}* (${i.selectedMl}ml) x${i.quantity}`
+          `• ${i.perfume.code ? `*${i.perfume.code}* – ` : ''}*${i.perfume.name}*${sizeLabel(i.perfume.name, i.selectedMl)} x${i.quantity}\n📸 ${productUrl(i.perfume.id, i.selectedMl)}`
       )
       .join('\n')
 
@@ -108,28 +114,24 @@ export const useCartStore = create<CartStore>((set, get) => ({
 }))
 
 
-// Acorta una URL de imagen con TinyURL (oculta el origen)
-export async function shortImageUrl(imageUrl: string): Promise<string> {
-  if (!imageUrl) return ''
-  try {
-    const res = await fetch(
-      `/api/shorten?url=${encodeURIComponent(imageUrl)}`,
-      { signal: AbortSignal.timeout(5000) }
-    )
-    if (res.ok) {
-      const data = await res.json()
-      if (data.short) return data.short
-    }
-  } catch {}
-  return imageUrl // fallback: URL original
+// Enlace a la página del perfume (/p/[id]); WhatsApp muestra su foto como vista previa
+export function productUrl(id: string, ml: number): string {
+  const origin =
+    typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL || ''
+  return `${origin}/p/${encodeURIComponent(id)}?ml=${ml}`
 }
 
-export function getSingleProductWhatsApp(perfume: Perfume, ml: number, shortUrl?: string): string {
-  const sizeOption = perfume.sizes.find((s) => s.ml === ml)
+// " (100ml)" salvo que el nombre ya traiga el tamaño ("... EDT 100ML")
+function sizeLabel(name: string, ml: number): string {
+  return new RegExp(`\\b${ml}\\s*ml\\b`, 'i').test(name) ? '' : ` (${ml}ml)`
+}
+
+export function getSingleProductWhatsApp(perfume: Perfume, ml: number): string {
+  // const sizeOption = perfume.sizes.find((s) => s.ml === ml)
   // const priceMXN = sizeOption ? `$${formatPrecio(sizeOption.price)} MXN` : ''
   const msg =
     `¡Hola! Me interesa el siguiente perfume de *Ararat Perfumes*:\n\n` +
-    `• ${perfume.code ? `*${perfume.code}* – ` : ''}*${perfume.name}* (${ml}ml)${shortUrl ? '\n📸 ' + shortUrl : ''}\n\n` +
+    `• ${perfume.code ? `*${perfume.code}* – ` : ''}*${perfume.name}*${sizeLabel(perfume.name, ml)}\n📸 ${productUrl(perfume.id, ml)}\n\n` +
     `¿Pueden darme más información sobre disponibilidad y tiempo de entrega? ¡Gracias!`
-  return `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '526141234567'}?text=${encodeURIComponent(msg)}`
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`
 }

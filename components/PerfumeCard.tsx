@@ -7,7 +7,7 @@ import { ShoppingCartOutlined, StarFilled } from '@ant-design/icons'
 import Image from 'next/image'
 import { Perfume } from '@/data/catalog'
 // import { formatPrecio } from '@/lib/pricing'
-import { useCartStore, getSingleProductWhatsApp, shortImageUrl } from '@/store/cartStore'
+import { useCartStore, getSingleProductWhatsApp } from '@/store/cartStore'
 
 interface Props {
   perfume: Perfume
@@ -37,12 +37,12 @@ export default function PerfumeCard({ perfume }: Props) {
   const [messageApi, contextHolder] = message.useMessage()
 
   const selectedSize = perfume.sizes.find((s) => s.ml === selectedMl) || perfume.sizes[0]
+  const image = selectedSize.image || perfume.image
   const glow = categoryGlow[perfume.category] || '201,168,76'
 
-  const handleWhatsApp = async (e: React.MouseEvent) => {
+  const handleWhatsApp = (e: React.MouseEvent) => {
     e.preventDefault()
-    const short = await shortImageUrl(perfume.image)
-    const url = getSingleProductWhatsApp(perfume, selectedMl, short)
+    const url = getSingleProductWhatsApp(perfume, selectedMl)
     window.open(url, '_blank', 'noopener,noreferrer')
   }
 
@@ -105,7 +105,7 @@ export default function PerfumeCard({ perfume }: Props) {
               transition={{ duration: 0.5, ease: 'easeOut' }}
             >
               <Image
-                src={perfume.image}
+                src={image}
                 alt={perfume.name}
                 fill
                 className="object-contain drop-shadow-2xl"
@@ -194,7 +194,7 @@ export default function PerfumeCard({ perfume }: Props) {
               {perfume.sizes.map((size) => (
                 <button
                   key={size.ml}
-                  onClick={() => setSelectedMl(size.ml)}
+                  onClick={() => { setSelectedMl(size.ml); setImgError(false) }}
                   className="flex-1 py-1.5 rounded-lg text-[11px] font-inter font-medium transition-all duration-200"
                   style={{
                     background: selectedMl === size.ml ? `rgba(${glow},0.15)` : 'rgba(255,255,255,0.04)',

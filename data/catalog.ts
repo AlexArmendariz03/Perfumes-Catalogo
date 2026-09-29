@@ -10,6 +10,7 @@
 
 import { perfumes as originalPerfumes, type Perfume } from './perfumes'
 import { aromePerfumes, type AromePerfume } from './arome-perfumes'
+import { cleanName, typeFromName, genderFromName } from './names'
 
 const USE_AROME = process.env.NEXT_PUBLIC_USE_AROME === 'true'
 
@@ -78,8 +79,8 @@ function toUnified(p: AromePerfume): Perfume | null {
     brand,
     description: p.description,
     category: p.category,
-    gender: p.gender,
-    type: p.type,
+    gender: genderFromName(p.name) ?? p.gender,
+    type: typeFromName(p.name) ?? p.type,
     oz: p.oz,
     ml: p.ml,
     sizes: p.sizes,
@@ -162,7 +163,7 @@ export const catalog: Perfume[] = groupVariants(
     : originalPerfumes)
     .filter((p) => !p.name.toLowerCase().includes('tester') && !NOT_PERFUME.test(p.name))
     .filter((p) => !HIDDEN.some((hide) => hide(p)))
-)
+).map((p) => ({ ...p, name: cleanName(p.name, p.brand) }))
 
 export const catalogSource: 'arome' | 'original' = USE_AROME ? 'arome' : 'original'
 

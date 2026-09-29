@@ -140,8 +140,9 @@ export default function CartDrawer() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="text-cream/50 text-[10px] font-inter tracking-wider">
-                        {item.perfume.code}
+                      <p className="text-cream/50 text-[10px] font-inter tracking-wider uppercase">
+                        {item.perfume.brand}
+                        {item.perfume.code ? ` · ${item.perfume.code}` : ''}
                       </p>
                       <p className="text-cream text-sm font-inter font-medium truncate">
                         {item.perfume.name}

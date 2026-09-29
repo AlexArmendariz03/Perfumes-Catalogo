@@ -32,7 +32,9 @@ export default function CatalogSection() {
       .filter((p) => activeGender === 'Todos' || p.gender === activeGender)
       .filter((p) => activeType === 'Todos' || p.type === activeType)
       .filter((p) =>
-        !q || p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q)
+        !q ||
+        `${p.brand} ${p.name}`.toLowerCase().includes(q) ||
+        p.code.toLowerCase().includes(q)
       )
       .sort((a, b) => {
         if (sortBy === 'price-asc') return a.sizes[0].price - b.sizes[0].price
@@ -95,7 +97,7 @@ export default function CatalogSection() {
         >
           <Input
             prefix={<SearchOutlined style={{ color: '#C9A84C' }} />}
-            placeholder="Buscar por nombre o código..."
+            placeholder="Buscar perfume o marca"
             value={search}
             onChange={(e) => { setSearch(e.target.value); resetPage() }}
             allowClear
@@ -208,7 +210,7 @@ export default function CatalogSection() {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+            className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-3 gap-y-10 sm:gap-x-8 sm:gap-y-14"
           >
             {paginated.map((perfume) => (
               <PerfumeCard key={perfume.id} perfume={perfume} />

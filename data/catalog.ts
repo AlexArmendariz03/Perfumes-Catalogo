@@ -149,11 +149,19 @@ function groupVariants(list: Perfume[]): Perfume[] {
 // Accesorios que no son fragancia (maletas, neceseres, cosmetiqueras, etc.)
 const NOT_PERFUME = /\bmaquillaje\b|\bcosmetiquera\b|\bneceser\b|\bmaleta\b|\batomizador\b/i
 
+// Ocultos de momento — comenta o borra la línea para volver a mostrarlos
+const HIDDEN: ((p: Perfume) => boolean)[] = [
+  (p) => /^cartier$/i.test(p.brand.trim()),
+  (p) => /^tom ?ford$/i.test(p.brand.trim()),
+  (p) => /\bsauvage\b/i.test(p.name),   // Dior Sauvage (todas sus versiones)
+]
+
 export const catalog: Perfume[] = groupVariants(
   (USE_AROME
     ? aromePerfumes.map(toUnified).filter((p): p is Perfume => p !== null)
     : originalPerfumes)
     .filter((p) => !p.name.toLowerCase().includes('tester') && !NOT_PERFUME.test(p.name))
+    .filter((p) => !HIDDEN.some((hide) => hide(p)))
 )
 
 export const catalogSource: 'arome' | 'original' = USE_AROME ? 'arome' : 'original'

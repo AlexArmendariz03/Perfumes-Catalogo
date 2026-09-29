@@ -1,0 +1,107 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --gold: #C9A84C;
+  --gold-light: #E2C97E;
+  --gold-dark: #A07830;
+  --onyx: #0A0A0A;
+  --cream: #F5F0E8;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #0A0A0A;
+  color: #F5F0E8;
+  font-family: 'Inter', system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0A0A0A;
+}
+::-webkit-scrollbar-thumb {
+  background: #C9A84C;
+  border-radius: 3px;
+}
+
+/* Gold shimmer text */
+.gold-text {
+  background: linear-gradient(135deg, #C9A84C 0%, #E2C97E 40%, #C9A84C 60%, #A07830 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 4s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+/* Ant Design overrides */
+.ant-drawer-content {
+  background: #111111 !important;
+}
+.ant-drawer-header {
+  background: #0A0A0A !important;
+  border-bottom: 1px solid rgba(201, 168, 76, 0.2) !important;
+}
+.ant-drawer-title {
+  color: #F5F0E8 !important;
+}
+.ant-drawer-close {
+  color: #C9A84C !important;
+}
+
+.ant-select-selector {
+  background: rgba(255,255,255,0.05) !important;
+  border-color: rgba(201, 168, 76, 0.4) !important;
+  color: #F5F0E8 !important;
+}
+.ant-select-arrow {
+  color: #C9A84C !important;
+}
+
+/* Glass card */
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(201, 168, 76, 0.15);
+}
+
+/* Category badge */
+.category-badge {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 100px;
+  border: 1px solid rgba(201, 168, 76, 0.4);
+  color: #C9A84C;
+}
+
+/* Gold divider */
+.gold-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #C9A84C, transparent);
+  width: 100%;
+}

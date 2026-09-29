@@ -5,7 +5,7 @@ import { DeleteOutlined, MinusOutlined, PlusOutlined, ShoppingCartOutlined } fro
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import { useCartStore } from '@/store/cartStore'
-import { calcPrecioMXN } from '@/lib/pricing'
+// import { calcPrecioMXN } from '@/lib/pricing'  // precios ocultos
 
 export default function CartDrawer() {
   const {
@@ -16,7 +16,7 @@ export default function CartDrawer() {
     updateQuantity,
     clearCart,
     totalItems,
-    totalPrice,
+    // totalPrice,  // precios ocultos
     getWhatsAppMessage,
   } = useCartStore()
 
@@ -55,7 +55,7 @@ export default function CartDrawer() {
       footer={
         items.length > 0 ? (
           <div className="space-y-3">
-            {/* Total */}
+            {/* total oculto — descomentar para mostrar
             <div className="flex items-center justify-between">
               <span className="text-cream/60 text-sm font-inter">Total estimado</span>
               <span className="font-inter font-bold text-xl gold-text">
@@ -63,6 +63,7 @@ export default function CartDrawer() {
                 <span className="text-cream/40 text-xs font-normal ml-1">MXN</span>
               </span>
             </div>
+            */}
 
             {/* WhatsApp CTA */}
             <motion.button
@@ -178,9 +179,11 @@ export default function CartDrawer() {
                         <PlusOutlined style={{ fontSize: 10 }} />
                       </button>
                     </div>
+                    {/* precio oculto — descomentar para mostrar
                     <p className="text-gold font-inter font-bold text-sm">
                       ${(calcPrecioMXN(item.selectedPriceUSD) * item.quantity).toLocaleString('es-MX')}
                     </p>
+                    */}
                   </div>
                 </div>
               </motion.div>

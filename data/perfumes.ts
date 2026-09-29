@@ -9,7 +9,8 @@ export interface Perfume {
   type: string
   oz: number
   ml: number
-  sizes: { ml: number; price: number }[]
+  // image: foto propia de esa presentación (cuando se agrupan variantes)
+  sizes: { ml: number; price: number; image?: string }[]
   image: string
   featured: boolean
   stock: number

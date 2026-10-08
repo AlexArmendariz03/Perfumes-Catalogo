@@ -56,29 +56,7 @@ body {
   100% { background-position: 200% center; }
 }
 
-/* Ant Design overrides */
-.ant-drawer-content {
-  background: #111111 !important;
-}
-.ant-drawer-header {
-  background: #0A0A0A !important;
-  border-bottom: 1px solid rgba(201, 168, 76, 0.2) !important;
-}
-.ant-drawer-title {
-  color: #F5F0E8 !important;
-}
-.ant-drawer-close {
-  color: #C9A84C !important;
-}
-
-.ant-select-selector {
-  background: rgba(255,255,255,0.05) !important;
-  border-color: rgba(201, 168, 76, 0.4) !important;
-  color: #F5F0E8 !important;
-}
-.ant-select-arrow {
-  color: #C9A84C !important;
-}
+/* Los componentes de Ant toman los colores del tema en components/AntdProvider.tsx */
 
 /* Glass card */
 .glass-card {

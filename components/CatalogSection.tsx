@@ -1,11 +1,10 @@
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Select, Input } from 'antd'
+import { Select, Input, Segmented, Tag, Button, Pagination, Empty } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
 import { catalog as perfumes } from '@/data/catalog'
-import { categories } from '@/data/perfumes'
 import PerfumeCard from './PerfumeCard'
 
 const PAGE_SIZE = 24
@@ -15,43 +14,86 @@ const containerVariants = {
   visible: { transition: { staggerChildren: 0.04 } },
 }
 
-export default function CatalogSection() {
-  const [activeCategory, setActiveCategory] = useState<string>('Todos')
-  const [activeGender, setActiveGender] = useState<string>('Todos')
-  const [activeType, setActiveType] = useState<string>('Todos')
-  const [sortBy, setSortBy] = useState<string>('default')
-  const [search, setSearch] = useState<string>('')
-  const [page, setPage] = useState(1)
+const COLECCIONES = [
+  { label: 'Todas', value: 'Todos' },
+  { label: 'Designer', value: 'Designer' },
+  { label: 'Árabes', value: 'Arabian' },
+]
+const GENEROS = ['Todos', 'Hombre', 'Mujer', 'Unisex']
+const CONCENTRACIONES = [
+  { label: 'Todas', value: 'Todos' },
+  { label: 'EDP', value: 'EDP' },
+  { label: 'EDT', value: 'EDT' },
+  { label: 'Parfum', value: 'Parfum' },
+  { label: 'EDC', value: 'EDC' },
+]
+const ORDEN = [
+  { value: 'default', label: 'Destacados' },
+  { value: 'name', label: 'Nombre A–Z' },
+  { value: 'brand', label: 'Marca A–Z' },
+]
 
-  const resetPage = useCallback(() => setPage(1), [])
+// Marcas con cuántos perfumes tiene cada una, para el filtro
+const BRAND_OPTIONS = Array.from(
+  perfumes.reduce((m, p) => m.set(p.brand, (m.get(p.brand) ?? 0) + 1), new Map<string, number>()),
+)
+  .sort(([a], [b]) => a.localeCompare(b, 'es'))
+  .map(([brand, n]) => ({ value: brand, label: brand, count: n }))
+
+export default function CatalogSection() {
+  const [coleccion, setColeccion] = useState('Todos')
+  const [genero, setGenero] = useState('Todos')
+  const [tipo, setTipo] = useState('Todos')
+  const [marcas, setMarcas] = useState<string[]>([])
+  const [sortBy, setSortBy] = useState('default')
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const gridTop = useRef<HTMLDivElement>(null)
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim()
-    return perfumes
-      .filter((p) => activeCategory === 'Todos' || p.category === activeCategory)
-      .filter((p) => activeGender === 'Todos' || p.gender === activeGender)
-      .filter((p) => activeType === 'Todos' || p.type === activeType)
-      .filter((p) =>
-        !q ||
-        `${p.brand} ${p.name}`.toLowerCase().includes(q) ||
-        p.code.toLowerCase().includes(q)
-      )
-      .sort((a, b) => {
-        if (sortBy === 'price-asc') return a.sizes[0].price - b.sizes[0].price
-        if (sortBy === 'price-desc') return b.sizes[0].price - a.sizes[0].price
-        if (sortBy === 'name') return a.name.localeCompare(b.name)
-        if (sortBy === 'featured') return (b.featured ? 1 : 0) - (a.featured ? 1 : 0)
-        return 0
-      })
-  }, [activeCategory, activeGender, activeType, sortBy, search])
+    const brandSet = new Set(marcas)
+    const list = perfumes
+      .filter((p) => coleccion === 'Todos' || p.category === coleccion)
+      .filter((p) => genero === 'Todos' || p.gender === genero)
+      .filter((p) => tipo === 'Todos' || p.type === tipo)
+      .filter((p) => brandSet.size === 0 || brandSet.has(p.brand))
+      .filter((p) => !q || `${p.brand} ${p.name}`.toLowerCase().includes(q) || p.code.toLowerCase().includes(q))
+    if (sortBy === 'name') return [...list].sort((a, b) => a.name.localeCompare(b.name, 'es'))
+    if (sortBy === 'brand') return [...list].sort((a, b) => a.brand.localeCompare(b.brand, 'es') || a.name.localeCompare(b.name, 'es'))
+    return [...list].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
+  }, [coleccion, genero, tipo, marcas, sortBy, search])
 
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
-  const handleFilter = (setter: (v: any) => void) => (val: any) => {
-    setter(val)
-    resetPage()
+  // Cualquier cambio de filtro regresa a la primera página
+  const withReset = <T,>(setter: (v: T) => void) => (v: T) => {
+    setter(v)
+    setPage(1)
   }
+
+  const clearAll = () => {
+    setColeccion('Todos')
+    setGenero('Todos')
+    setTipo('Todos')
+    setMarcas([])
+    setSearch('')
+    setPage(1)
+  }
+
+  const changePage = (p: number) => {
+    setPage(p)
+    gridTop.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  // Filtros activos como etiquetas que se pueden quitar
+  const activeTags = [
+    search.trim() && { key: 'q', label: `“${search.trim()}”`, clear: () => withReset(setSearch)('') },
+    coleccion !== 'Todos' && { key: 'col', label: COLECCIONES.find((c) => c.value === coleccion)!.label, clear: () => withReset(setColeccion)('Todos') },
+    genero !== 'Todos' && { key: 'gen', label: genero, clear: () => withReset(setGenero)('Todos') },
+    tipo !== 'Todos' && { key: 'tipo', label: tipo, clear: () => withReset(setTipo)('Todos') },
+    ...marcas.map((m) => ({ key: `m-${m}`, label: m, clear: () => withReset(setMarcas)(marcas.filter((x) => x !== m)) })),
+  ].filter(Boolean) as { key: string; label: string; clear: () => void }[]
 
   return (
     <section id="catalogo" className="py-24 px-4 bg-onyx relative overflow-hidden">
@@ -87,126 +129,88 @@ export default function CatalogSection() {
           </p>
         </motion.div>
 
-        {/* Search */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="mb-6"
-        >
+        {/* Búsqueda + marca */}
+        <div className="grid gap-3 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] mb-5">
           <Input
-            prefix={<SearchOutlined style={{ color: '#C9A84C' }} />}
+            size="large"
+            prefix={<SearchOutlined className="text-gold" />}
             placeholder="Buscar perfume o marca"
             value={search}
-            onChange={(e) => { setSearch(e.target.value); resetPage() }}
+            onChange={(e) => withReset(setSearch)(e.target.value)}
             allowClear
-            style={{
-              background: '#1A1A1A',
-              borderColor: 'rgba(201,168,76,0.3)',
-              color: '#F5F0E8',
-              borderRadius: 12,
-              height: 44,
-            }}
+            aria-label="Buscar perfume o marca"
           />
-        </motion.div>
+          <Select
+            mode="multiple"
+            size="large"
+            allowClear
+            showSearch
+            placeholder="Filtrar por marca"
+            aria-label="Filtrar por marca"
+            value={marcas}
+            onChange={withReset(setMarcas)}
+            options={BRAND_OPTIONS}
+            maxTagCount="responsive"
+            optionFilterProp="value"
+            notFoundContent="Sin marcas con ese nombre"
+            optionRender={(o) => (
+              <span className="flex justify-between gap-3">
+                {o.label}
+                <span className="text-cream/40">{o.data.count}</span>
+              </span>
+            )}
+          />
+        </div>
 
-        {/* Filters */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="flex flex-col gap-4 mb-10"
-        >
-          {/* Category + Type pills */}
-          <div className="flex flex-wrap gap-2 items-center">
-            {/* Category */}
-            {['Todos', ...categories].map((cat) => (
-              <motion.button
-                key={cat}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => handleFilter(setActiveCategory)(cat)}
-                className={`px-4 py-2 rounded-full text-xs font-inter font-medium tracking-wider uppercase transition-all duration-300 ${
-                  activeCategory === cat
-                    ? 'bg-gold text-onyx shadow-gold'
-                    : 'border border-gold/30 text-cream/70 hover:border-gold/60 hover:text-gold'
-                }`}
-              >
-                {cat}
-              </motion.button>
-            ))}
-
-            <div className="w-px h-5 bg-gold/20 mx-1" />
-
-            {/* EDP/EDT */}
-            {['Todos', 'EDP', 'EDT', 'EDC'].map((t) => (
-              <button
-                key={t}
-                onClick={() => handleFilter(setActiveType)(t)}
-                className={`px-3 py-1.5 rounded text-xs font-inter transition-all duration-200 ${
-                  activeType === t
-                    ? 'bg-gold/20 text-gold border border-gold/50'
-                    : 'text-cream/50 hover:text-cream/80 border border-transparent'
-                }`}
-              >
-                {t}
-              </button>
-            ))}
+        {/* Colección, género y concentración */}
+        <div className="flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-6 mb-6">
+          <div className="overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0">
+            <Segmented aria-label="Colección" options={COLECCIONES} value={coleccion} onChange={(v) => withReset(setColeccion)(String(v))} />
           </div>
-
-          {/* Gender + Sort */}
-          <div className="flex flex-wrap gap-3 items-center justify-between">
-            <div className="flex gap-2">
-              {['Todos', 'Hombre', 'Mujer', 'Unisex'].map((g) => (
-                <button
-                  key={g}
-                  onClick={() => handleFilter(setActiveGender)(g)}
-                  className={`px-3 py-1.5 rounded text-xs font-inter transition-all duration-200 ${
-                    activeGender === g
-                      ? 'bg-gold/20 text-gold border border-gold/50'
-                      : 'text-cream/50 hover:text-cream/80'
-                  }`}
-                >
-                  {g}
-                </button>
-              ))}
-            </div>
-
-            <Select
-              value={sortBy}
-              onChange={handleFilter(setSortBy)}
-              size="small"
-              className="w-40"
-              options={[
-                { value: 'default', label: 'Orden original' },
-                { value: 'featured', label: 'Destacados primero' },
-                { value: 'price-asc', label: 'Precio ↑' },
-                { value: 'price-desc', label: 'Precio ↓' },
-                { value: 'name', label: 'Nombre A-Z' },
-              ]}
-            />
+          <div className="overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0">
+            <Segmented aria-label="Género" options={GENEROS} value={genero} onChange={(v) => withReset(setGenero)(String(v))} />
           </div>
-        </motion.div>
+          <div className="overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0">
+            <Segmented aria-label="Concentración" options={CONCENTRACIONES} value={tipo} onChange={(v) => withReset(setTipo)(String(v))} />
+          </div>
+        </div>
 
-        {/* Count */}
-        <div className="flex items-center justify-between mb-6">
-          <p className="text-cream/40 text-xs font-inter">
-            {filtered.length.toLocaleString()} fragancias
-            {search && ` · "${search}"`}
-          </p>
-          {totalPages > 1 && (
-            <p className="text-cream/40 text-xs font-inter">
-              Página {page} de {totalPages}
-            </p>
-          )}
+        {/* Resultados, filtros activos y orden */}
+        <div ref={gridTop} className="scroll-mt-28 flex flex-wrap items-center justify-between gap-3 mb-8">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-cream/60 text-sm font-inter mr-1">
+              {filtered.length.toLocaleString()} fragancias
+            </span>
+            {activeTags.map((t) => (
+              <Tag
+                key={t.key}
+                closable
+                onClose={(e) => { e.preventDefault(); t.clear() }}
+                className="!m-0 !px-3 !py-1 !rounded-full !border-gold/40 text-[13px]"
+              >
+                {t.label}
+              </Tag>
+            ))}
+            {activeTags.length > 1 && (
+              <Button type="link" size="small" onClick={clearAll}>
+                Limpiar filtros
+              </Button>
+            )}
+          </div>
+          <Select
+            value={sortBy}
+            onChange={setSortBy}
+            options={ORDEN}
+            className="w-44"
+            aria-label="Ordenar"
+            prefix={<span className="text-cream/50 text-xs">Orden:</span>}
+          />
         </div>
 
         {/* Grid */}
         <AnimatePresence mode="wait">
           <motion.div
-            key={`${activeCategory}-${activeGender}-${activeType}-${sortBy}-${search}-${page}`}
+            key={`${coleccion}-${genero}-${tipo}-${marcas.join(',')}-${sortBy}-${search}-${page}`}
             variants={containerVariants}
             initial="hidden"
             animate="visible"
@@ -219,59 +223,27 @@ export default function CatalogSection() {
         </AnimatePresence>
 
         {filtered.length === 0 && (
-          <div className="text-center py-20 text-cream/40">
-            <p className="font-playfair text-2xl mb-2" style={{ fontFamily: 'Playfair Display' }}>
-              Sin resultados
-            </p>
-            <p className="font-inter text-sm">Prueba con otro filtro o búsqueda</p>
-          </div>
+          <Empty
+            className="py-16"
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={<span className="text-cream/60">No encontramos fragancias con esos filtros</span>}
+          >
+            <Button type="primary" onClick={clearAll}>Limpiar filtros</Button>
+          </Empty>
         )}
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 mt-12 flex-wrap">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="px-4 py-2 text-xs font-inter border border-gold/30 text-gold rounded-full hover:bg-gold/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-            >
-              ← Anterior
-            </button>
-
-            {/* Page numbers */}
-            {Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
-              let pageNum: number
-              if (totalPages <= 7) {
-                pageNum = i + 1
-              } else if (page <= 4) {
-                pageNum = i + 1
-              } else if (page >= totalPages - 3) {
-                pageNum = totalPages - 6 + i
-              } else {
-                pageNum = page - 3 + i
-              }
-              return (
-                <button
-                  key={pageNum}
-                  onClick={() => setPage(pageNum)}
-                  className={`w-9 h-9 text-xs font-inter rounded-full transition-all ${
-                    page === pageNum
-                      ? 'bg-gold text-onyx font-bold'
-                      : 'border border-gold/20 text-cream/60 hover:border-gold/50 hover:text-gold'
-                  }`}
-                >
-                  {pageNum}
-                </button>
-              )
-            })}
-
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              className="px-4 py-2 text-xs font-inter border border-gold/30 text-gold rounded-full hover:bg-gold/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-            >
-              Siguiente →
-            </button>
+        {/* Paginación */}
+        {filtered.length > PAGE_SIZE && (
+          <div className="flex justify-center mt-14">
+            <Pagination
+              current={page}
+              total={filtered.length}
+              pageSize={PAGE_SIZE}
+              onChange={changePage}
+              showSizeChanger={false}
+              showQuickJumper={filtered.length > PAGE_SIZE * 10}
+              responsive
+            />
           </div>
         )}
       </div>

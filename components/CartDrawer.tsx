@@ -1,6 +1,6 @@
 'use client'
 
-import { Drawer, Button, Empty } from 'antd'
+import { Drawer, Button, Empty, Badge, InputNumber, Popconfirm, Space, Tooltip } from 'antd'
 import { DeleteOutlined, MinusOutlined, PlusOutlined, ShoppingCartOutlined } from '@ant-design/icons'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
@@ -29,16 +29,13 @@ export default function CartDrawer() {
     <Drawer
       title={
         <div className="flex items-center gap-3">
-          <ShoppingCartOutlined style={{ color: '#C9A84C', fontSize: 20 }} />
-          <span
-            className="text-cream font-inter font-semibold text-base"
-            style={{ color: '#F5F0E8' }}
-          >
-            Cotización
-          </span>
+          <Badge count={totalItems()} size="small" offset={[2, -2]}>
+            <ShoppingCartOutlined style={{ color: '#C9A84C', fontSize: 20 }} />
+          </Badge>
+          <span className="font-playfair text-lg font-semibold text-cream">Tu cotización</span>
           {totalItems() > 0 && (
-            <span className="ml-auto text-xs bg-gold text-onyx font-bold px-2 py-0.5 rounded-full">
-              {totalItems()} items
+            <span className="ml-auto text-xs text-cream/50 font-inter font-normal">
+              {totalItems()} {totalItems() === 1 ? 'pieza' : 'piezas'}
             </span>
           )}
         </div>
@@ -46,7 +43,7 @@ export default function CartDrawer() {
       placement="right"
       onClose={closeCart}
       open={isOpen}
-      width={400}
+      width="min(400px, 100vw)"
       styles={{
         body: { padding: 0, background: '#111111', display: 'flex', flexDirection: 'column' },
         header: { background: '#0A0A0A', borderBottom: '1px solid rgba(201,168,76,0.2)' },
@@ -65,6 +62,10 @@ export default function CartDrawer() {
             </div>
             */}
 
+            <p className="text-cream/50 text-xs font-inter text-center">
+              Te respondemos con precio, disponibilidad y tiempo de entrega.
+            </p>
+
             {/* WhatsApp CTA */}
             <motion.button
               whileHover={{ scale: 1.02, boxShadow: '0 6px 30px rgba(37,211,102,0.3)' }}
@@ -78,37 +79,38 @@ export default function CartDrawer() {
               Enviar cotización por WhatsApp
             </motion.button>
 
-            {/* Clear cart */}
-            <button
-              onClick={clearCart}
-              className="w-full text-cream/40 hover:text-red-400 text-xs font-inter transition-colors py-1"
+            {/* Vaciar, con confirmación para no perder la lista por accidente */}
+            <Popconfirm
+              title="¿Vaciar la cotización?"
+              description="Se quitarán todos los perfumes."
+              okText="Vaciar"
+              cancelText="Cancelar"
+              okButtonProps={{ danger: true }}
+              onConfirm={clearCart}
             >
-              Limpiar carrito
-            </button>
+              <Button type="text" size="small" block className="!text-cream/40 hover:!text-red-400">
+                Vaciar cotización
+              </Button>
+            </Popconfirm>
           </div>
         ) : null
       }
     >
       {items.length === 0 ? (
         <div className="flex-1 flex items-center justify-center p-8">
-          <div className="text-center">
-            <div className="text-5xl mb-4">🛒</div>
-            <p
-              className="font-playfair text-lg text-cream/60 mb-2"
-              style={{ fontFamily: 'Playfair Display' }}
-            >
-              Tu cotización está vacía
-            </p>
-            <p className="text-cream/30 text-sm font-inter">
-              Agrega perfumes desde el catálogo para empezar.
-            </p>
-            <button
-              onClick={closeCart}
-              className="mt-6 px-6 py-2 border border-gold/40 text-gold text-sm font-inter rounded-full hover:bg-gold/10 transition-all"
-            >
-              Ver Catálogo
-            </button>
-          </div>
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={
+              <span className="flex flex-col gap-1">
+                <span className="font-playfair text-lg text-cream/80">Tu cotización está vacía</span>
+                <span className="text-cream/40 text-sm">Agrega perfumes desde el catálogo para empezar.</span>
+              </span>
+            }
+          >
+            <Button href="#catalogo" onClick={closeCart} shape="round">
+              Ver catálogo
+            </Button>
+          </Empty>
         </div>
       ) : (
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -124,12 +126,13 @@ export default function CartDrawer() {
                 className="glass-card rounded-xl p-3 flex gap-3"
               >
                 {/* Image */}
-                <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gradient-to-br from-amber-900/40 to-amber-700/20 flex-shrink-0">
+                <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-white flex-shrink-0">
                   <Image
                     src={item.perfume.image}
                     alt={item.perfume.name}
                     fill
-                    className="object-cover"
+                    sizes="64px"
+                    className="object-contain p-1"
                     onError={(e) => {
                       ;(e.target as HTMLImageElement).style.display = 'none'
                     }}
@@ -149,37 +152,43 @@ export default function CartDrawer() {
                       </p>
                       <p className="text-gold/70 text-xs font-inter">{item.selectedMl}ml</p>
                     </div>
-                    <button
-                      onClick={() => removeItem(item.perfume.id, item.selectedMl)}
-                      className="text-cream/30 hover:text-red-400 transition-colors p-1 flex-shrink-0"
-                    >
-                      <DeleteOutlined style={{ fontSize: 13 }} />
-                    </button>
+                    <Tooltip title="Quitar">
+                      <Button
+                        type="text"
+                        size="small"
+                        aria-label={`Quitar ${item.perfume.name}`}
+                        icon={<DeleteOutlined />}
+                        onClick={() => removeItem(item.perfume.id, item.selectedMl)}
+                        className="!text-cream/40 hover:!text-red-400 flex-shrink-0"
+                      />
+                    </Tooltip>
                   </div>
 
                   {/* Quantity + price */}
                   <div className="flex items-center justify-between mt-2">
-                    <div className="flex items-center gap-2 bg-white/5 rounded-lg p-1">
-                      <button
-                        onClick={() =>
-                          updateQuantity(item.perfume.id, item.selectedMl, item.quantity - 1)
-                        }
-                        className="w-6 h-6 flex items-center justify-center text-cream/60 hover:text-gold transition-colors"
-                      >
-                        <MinusOutlined style={{ fontSize: 10 }} />
-                      </button>
-                      <span className="text-cream text-sm font-inter font-medium w-5 text-center">
-                        {item.quantity}
-                      </span>
-                      <button
-                        onClick={() =>
-                          updateQuantity(item.perfume.id, item.selectedMl, item.quantity + 1)
-                        }
-                        className="w-6 h-6 flex items-center justify-center text-cream/60 hover:text-gold transition-colors"
-                      >
-                        <PlusOutlined style={{ fontSize: 10 }} />
-                      </button>
-                    </div>
+                    <Space.Compact size="small">
+                      <Button
+                        aria-label="Quitar una pieza"
+                        icon={<MinusOutlined />}
+                        disabled={item.quantity <= 1}
+                        onClick={() => updateQuantity(item.perfume.id, item.selectedMl, item.quantity - 1)}
+                      />
+                      <InputNumber
+                        aria-label="Cantidad"
+                        min={1}
+                        max={99}
+                        controls={false}
+                        value={item.quantity}
+                        onChange={(v) => v && updateQuantity(item.perfume.id, item.selectedMl, v)}
+                        className="!w-12 [&_input]:!text-center"
+                      />
+                      <Button
+                        aria-label="Agregar una pieza"
+                        icon={<PlusOutlined />}
+                        disabled={item.quantity >= 99}
+                        onClick={() => updateQuantity(item.perfume.id, item.selectedMl, item.quantity + 1)}
+                      />
+                    </Space.Compact>
                     {/* precio oculto — descomentar para mostrar
                     <p className="text-gold font-inter font-bold text-sm">
                       ${(calcPrecioMXN(item.selectedPriceUSD) * item.quantity).toLocaleString('es-MX')}

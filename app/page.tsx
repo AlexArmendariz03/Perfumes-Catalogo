@@ -2,6 +2,7 @@
 
 import Navbar from '@/components/Navbar'
 import HeroSection from '@/components/HeroSection'
+import AdvisorBubble from '@/components/AdvisorBubble'
 import CatalogSection from '@/components/CatalogSection'
 import CartDrawer from '@/components/CartDrawer'
 import FloatingWhatsApp from '@/components/FloatingWhatsApp'
@@ -16,6 +17,7 @@ export default function Home() {
       <Footer />
       <CartDrawer />
       <FloatingWhatsApp />
+      <AdvisorBubble />
     </main>
   )
 }

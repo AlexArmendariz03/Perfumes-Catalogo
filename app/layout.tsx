@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import AntdProvider from '@/components/AntdProvider'
 
 export const metadata: Metadata = {
   title: 'Ararat Perfumes — Fragancias de Lujo',
@@ -23,7 +24,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <AntdProvider>{children}</AntdProvider>
+      </body>
     </html>
   )
 }

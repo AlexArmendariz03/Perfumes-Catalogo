@@ -59,6 +59,9 @@ export default function AntdProvider({ children }: { children: React.ReactNode }
               defaultBg: 'rgba(201,168,76,0.1)',
               defaultColor: GOLD,
             },
+            Badge: {
+              colorError: GOLD, // contador dorado con número negro (colorTextLightSolid)
+            },
             Drawer: {
               colorBgElevated: '#111111',
               colorIcon: GOLD,

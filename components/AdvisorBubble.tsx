@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
+import { Progress, Spin, Alert, Empty, Button } from 'antd'
 import type { Perfume } from '@/data/catalog'
 import type { Quiz } from '@/data/advisor'
 import { useCartStore, getSingleProductWhatsApp } from '@/store/cartStore'
@@ -233,6 +234,18 @@ export default function AdvisorBubble() {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
               </button>
             </header>
+            {status !== 'done' && (
+              <Progress
+                percent={status === 'quiz' ? Math.round((step / STEPS.length) * 100) : 100}
+                showInfo={false}
+                size={['100%', 3]}
+                strokeLinecap="square"
+                strokeColor={{ from: '#A07830', to: '#E2C97E' }}
+                trailColor="rgba(201,168,76,0.12)"
+                aria-label="Progreso del cuestionario"
+                className="!m-0 !leading-none"
+              />
+            )}
 
             <div className="flex-1 overflow-y-auto px-5 py-5" aria-live="polite">
               {status === 'quiz' && (
@@ -285,35 +298,34 @@ export default function AdvisorBubble() {
               )}
 
               {status === 'loading' && (
-                <div className="flex items-center gap-3 py-8 text-cream/60 text-sm">
-                  <motion.span
-                    className="w-2.5 h-2.5 rounded-full bg-gold"
-                    animate={reduceMotion ? undefined : { opacity: [0.3, 1, 0.3] }}
-                    transition={{ repeat: Infinity, duration: 1.2 }}
-                  />
+                <div className="flex flex-col items-center gap-4 py-12 text-cream/60 text-sm">
+                  <Spin size="large" />
                   Buscando tus opciones en el catálogo…
                 </div>
               )}
 
               {status === 'error' && (
                 <div className="flex flex-col gap-4 py-4">
-                  <p role="alert" className="text-sm text-red-300">{error}</p>
-                  <button type="button" onClick={reset} className="self-start h-10 px-6 rounded-full border border-gold/40 text-gold text-sm hover:bg-gold/10 transition-all">
+                  <Alert type="warning" showIcon message={error} />
+                  <Button shape="round" onClick={reset} className="self-start">
                     Volver a empezar
-                  </button>
+                  </Button>
                 </div>
               )}
 
               {status === 'done' && (
                 <div className="flex flex-col gap-3">
                   {results.length === 0 ? (
-                    <p className="text-cream/60 text-sm py-4">No encontramos perfumes con esa combinación. Prueba con otros aromas.</p>
+                    <Empty
+                      image={Empty.PRESENTED_IMAGE_SIMPLE}
+                      description={<span className="text-cream/60">No encontramos perfumes con esa combinación. Prueba con otros aromas.</span>}
+                    />
                   ) : (
                     <ul className="flex flex-col gap-3">{results.map((r) => <ResultRow key={r.perfume.id} rec={r} />)}</ul>
                   )}
-                  <button type="button" onClick={reset} className="self-center mt-2 px-6 py-2 border border-gold/40 text-gold text-sm rounded-full hover:bg-gold/10 transition-all">
+                  <Button shape="round" onClick={reset} className="self-center mt-2">
                     Empezar de nuevo
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>

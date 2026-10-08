@@ -1,7 +1,7 @@
 /**
  * Enriquecimiento único del catálogo para el asesor de perfumes.
  *
- * Pide a Claude la familia olfativa, notas, intensidad, ocasiones, rangos de
+ * Pide al modelo la familia olfativa, notas, intensidad, ocasiones, rangos de
  * edad con más afinidad y temporada de cada perfume, y lo guarda en
  * data/perfume-profiles.json. Si se interrumpe, al volver a correrlo continúa
  * con los que faltan.

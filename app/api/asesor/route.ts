@@ -61,7 +61,7 @@ function describeCandidates(cands: Candidate[]): string {
     .join('\n')
 }
 
-async function chooseWithClaude(quiz: Quiz, cands: Candidate[]) {
+async function chooseWithModel(quiz: Quiz, cands: Candidate[]) {
   if (!process.env.ANTHROPIC_API_KEY) return null
   const client = new Anthropic({ timeout: 20_000, maxRetries: 1 })
   try {
@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
   const chosen: { perfume: Candidate['perfume']; razon: string }[] = []
   const seen = new Set<string>()
 
-  for (const r of (await chooseWithClaude(quiz, cands)) ?? []) {
+  for (const r of (await chooseWithModel(quiz, cands)) ?? []) {
     const c = byId.get(r.id)
     if (!c || seen.has(r.id) || chosen.length >= 5) continue
     seen.add(r.id)

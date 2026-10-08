@@ -41,6 +41,10 @@ module.exports = {
       fontFamily: {
         playfair: ['Playfair Display', 'Georgia', 'serif'],
         inter: ['Inter', 'system-ui', 'sans-serif'],
+        // Tipografías del rediseño (tarjetas)
+        bodoni: ['"Bodoni Moda"', 'Georgia', 'serif'],
+        hanken: ['"Hanken Grotesk"', 'system-ui', 'sans-serif'],
+        plex: ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
       },
       backgroundImage: {
         'gold-gradient': 'linear-gradient(135deg, #C9A84C 0%, #E2C97E 50%, #A07830 100%)',

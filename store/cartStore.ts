@@ -99,7 +99,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
     const lines = items
       .map(
         (i) =>
-          `• ${i.perfume.code ? `*${i.perfume.code}* – ` : ''}*${i.perfume.name}*${sizeLabel(i.perfume.name, i.selectedMl)} x${i.quantity}\n📸 ${productUrl(i.perfume.id, i.selectedMl)}`
+          `• ${i.perfume.code ? `*${i.perfume.code}* – ` : ''}${i.perfume.brand} *${i.perfume.name}*${sizeLabel(i.perfume.name, i.selectedMl)} x${i.quantity}\n📸 ${productUrl(i.perfume.id, i.selectedMl)}`
       )
       .join('\n')
 
@@ -131,7 +131,7 @@ export function getSingleProductWhatsApp(perfume: Perfume, ml: number): string {
   // const priceMXN = sizeOption ? `$${formatPrecio(sizeOption.price)} MXN` : ''
   const msg =
     `¡Hola! Me interesa el siguiente perfume de *Ararat Perfumes*:\n\n` +
-    `• ${perfume.code ? `*${perfume.code}* – ` : ''}*${perfume.name}*${sizeLabel(perfume.name, ml)}\n📸 ${productUrl(perfume.id, ml)}\n\n` +
+    `• ${perfume.code ? `*${perfume.code}* – ` : ''}${perfume.brand} *${perfume.name}*${sizeLabel(perfume.name, ml)}\n📸 ${productUrl(perfume.id, ml)}\n\n` +
     `¿Pueden darme más información sobre disponibilidad y tiempo de entrega? ¡Gracias!`
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`
 }
